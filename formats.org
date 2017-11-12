@@ -1,0 +1,571 @@
+
+* Python struct format strings
+
+1. Byte order, size, and alignment
+   - @ -- native, native, native
+   - = -- native, standard, none
+   - < -- little endian, standard, none
+   - > -- big endian, standard, none
+   - ! -- network (= big-endian), standard, none
+2. Format characters
+  - x  -- pad byte, 1
+  - c  -- char, 1
+  - bB -- char (int), 1
+  - ? -- _Bool, bool, 1
+  - hH -- short (int), 2
+  - iI -- int, 4
+  - lL -- long (int), 4
+  - qQ -- long long (int), 8
+  - nN -- ssize_t / size_t, only available for the native size
+  - f  -- float, 4
+  - d  -- double, 8
+  - s  -- char[], bytes
+  - p  -- char[], bytes
+  - P  -- void *, integer
+
+
+* MCA8000 (PMCA) -- .mca
+
+File structure (text):
+#+BEGIN_EXAMPLE
+<<PMCA SPECTRUM>>
+...
+<<CALIBRATION>>
+LABEL - keV
+...
+<<ROI>>
+...
+<<DATA>>
+...
+<<END>>
+#+END_EXAMPLE
+
+
+* ORTEC file structures
+
+** Integer data file (.chn)
+
+ ORTEC File Structures, sec 3.1, pp.5
+
+ Record HEADER (32-bytes): fmt_str = "< 3h 2s 2i 8s 4s 2h"
+ |-----+-----+------+-------------------------------------|
+ | No. | Pos | Type | Desc                                |
+ |-----+-----+------+-------------------------------------|
+ |   1 |   0 | 1h   | -1                                  |
+ |   2 |   2 | 1h   | MCA number or detector number       |
+ |   3 |   4 | 1h   | Segment number (=1, UMCBI)          |
+ |   4 |   6 | 2s   | ASCII seconds of start time         |
+ |   5 |   8 | 1i   | Real time (increments of 20 ms)     |
+ |   6 |  12 | 1i   | Live time (increments of 20 ms)     |
+ |   7 |  16 | 8s   | Start date: "DDMMMYY*"              |
+ |     |     |      | '*'=1, used for the date after 2000 |
+ |   8 |  24 | 4s   | Start time as ASCII "HHMM"          |
+ |   9 |  28 | 1h   | Channle offset of data              |
+ |  10 |  30 | 1h   | Number of channels.                 |
+ |-----+-----+------+-------------------------------------|
+
+ DATA: fmt_str = "<(num-of-chns)*i"
+   (4-byte integer) * (number of channels).
+
+ Record Tail: Additional descriptive infomation about the spectrum. (512 bytes)
+
+Early versions: fmt_str = "< 1h 2x 2f 4x 2f 232x 1b 63s 1b 63s 128x"
+|-----+-----+------+---------------------------------------|
+| No. | Pos | Type | Desc                                  |
+|-----+-----+------+---------------------------------------|
+|   1 |   0 | 1h   | -101 = 0xFF8B                         |
+|     |   2 | 2x   | --                                    |
+|-----+-----+------+---------------------------------------|
+|   2 |   4 | 1f   | Energy calibration zero intercept     |
+|     |     |      | - 0.0 for uncalibrated spectrum.      |
+|   3 |   8 | 1f   | Energy calibration slope.             |
+|     |     |      | - 1.0 for uncalibrated spectrum       |
+|     |  12 | 4x   | --                                    |
+|   4 |  16 | 1f   | Peak shape calibration zero intercept |
+|     |     |      | - 1.0 for uncalibrated spectrum.      |
+|   5 |  20 | 1f   | Peak shape calibration slope          |
+|     |     |      | - 0.0 for uncalibrated spectrum       |
+|     |  24 | 232x | --                                    |
+|-----+-----+------+---------------------------------------|
+|   6 | 256 | 1b   | Length of detector description        |
+|   7 | 257 | 63s  | Detector description                  |
+|   8 | 320 | 1b   | Length of sample description          |
+|   9 | 321 | 63s  | Sample description                    |
+|-----+-----+------+---------------------------------------|
+|     | 384 | 128x | --                                    |
+|-----+-----+------+---------------------------------------|
+
+New versions: fmt_str = "< 1h 2x 2f 2f 2f 228x 1b 63s 1b 63s 128x"
+|-----+-----+------+---------------------------------------|
+| No. | Pos | Type | Desc                                  |
+|-----+-----+------+---------------------------------------|
+|   1 |   0 | 1h   | -102 = 0xFF9A                         |
+|     |   2 | 2x   | --                                    |
+|-----+-----+------+---------------------------------------|
+|   2 |   4 | 1f   | Energy calibration zero intercept     |
+|     |     |      | - 0.0 for uncalibrated spectrum       |
+|   3 |   8 | 1f   | Energy calibration slope              |
+|     |     |      | - 1.0 for uncalibrated spectrum       |
+|   4 |  12 | 1f   | Energy calibration quadratic term     |
+|     |     |      | - 0.0 for uncalibrated spectrum       |
+|   5 |  16 | 1f   | Peak shape calibration zero intercept |
+|     |     |      | - 1.0 for uncalibrated spectrum       |
+|   6 |  20 | 1f   | Peak shape calibration slope          |
+|     |     |      | - 0.0 for uncalibrated spectrum       |
+|   7 |  24 | 1f   | Peak shape calibration quadratic term |
+|     |     |      | - 0.0 for uncalibrated spectrum       |
+|     |  30 | 228x | --                                    |
+|-----+-----+------+---------------------------------------|
+|   8 | 256 | 1b   | Length of detector description        |
+|   9 | 257 | 63s  | Detector description                  |
+|  10 | 320 | 1b   | Length of sample description          |
+|  11 | 321 | 63s  | Sample description                    |
+|-----+-----+------+---------------------------------------|
+|     | 384 | 128x | --                                    |
+|-----+-----+------+---------------------------------------|
+
+Old AlphaVision version:
+fmt_str = "< 1h 2x 6f 228x 1b 63s 1b 63s  1I 32s 10s 10s 3f 1h 7f 30s"
+|-----+-----+------+---------------------------------------|
+| No. | Pos | Type | Desc                                  |
+|-----+-----+------+---------------------------------------|
+|   1 |   0 | 1h   | -102 = 0xFF9A                         |
+|     |   2 | 2x   | --                                    |
+|-----+-----+------+---------------------------------------|
+|   2 |   4 | 1f   | Energy calibration zero intercept     |
+|     |     |      | - 0.0 for uncalibrated spectrum       |
+|   3 |   8 | 1f   | Energy calibration slope              |
+|     |     |      | - 1.0 for uncalibrated spectrum       |
+|   4 |  12 | 1f   | Energy calibration quadratic term     |
+|     |     |      | - 0.0 for uncalibrated spectrum       |
+|   5 |  16 | 1f   | Peak shape calibration zero intercept |
+|     |     |      | - 1.0 for uncalibrated spectrum       |
+|   6 |  20 | 1f   | Peak shape calibration slope          |
+|     |     |      | - 0.0 for uncalibrated spectrum       |
+|   7 |  24 | 1f   | Peak shape calibration quadratic term |
+|     |     |      | - 0.0 for uncalibrated spectrum       |
+|     |  30 | 228x | --                                    |
+|-----+-----+------+---------------------------------------|
+|   8 | 256 | 1b   | Length of detector description        |
+|   9 | 257 | 63s  | Detector description                  |
+|  10 | 320 | 1b   | Length of sample description          |
+|  11 | 321 | 63s  | Sample description                    |
+|-----+-----+------+---------------------------------------|
+|  12 | 384 | 1I   | AlphaVision ID, = 0x53495641          |
+|  13 | 388 | 32s  | Sample type name                      |
+|  14 | 420 | 10s  | ASCII collection date                 |
+|  15 | 430 | 10s  | ASCII collection time                 |
+|  16 | 440 | 1f   | Totale volume of sample               |
+|  17 | 444 | 1f   | Aliquot volume of sample              |
+|  18 | 448 | 1f   | Tracer amount (DPM)                   |
+|  19 | 452 | 1h   | Volume units                          |
+|  20 | 454 | 1f   | Detector efficiency                   |
+|  21 | 458 | 1f   | Old calibration intercept             |
+|  22 | 462 | 1f   | Old calibration slope                 |
+|  23 | 466 | 1f   | Old calibration shape                 |
+|  24 | 470 | 1f   | Old calibration efficiency            |
+|  25 | 474 | 1f   | Old background counts                 |
+|  26 | 478 | 1f   | Old background CPM                    |
+|  27 | 482 | 30s  | Group name                            |
+|-----+-----+------+---------------------------------------|
+
+
+** ORTEC spectra -- .spc
+
+- Created by the programm CONVERT (A18)
+- Contents: a spectrum, the associated information required for analysising
+- The associated information is obtained from other files related to the MCA and
+  segment that acquired the spectrum, and are merged by CONVERT.
+
+Contents:
+- Record 1 (128 bytes)
+- Acquisition information record (128 bytes)
+- Sample description record
+- Detector description record
+- 1st, 2nd, 3rd analysis parameter
+- Absorption correction description record (128 bytes)
+- Absorption correction data record (128 bytes per block)
+  - If fewer than 8 pairs are used, the array values are set to zero.
+  - Data records are as many as necessary, up to 64-energies (up to 8 blocks).
+- Geometry correction description record (128 bytes)
+- Geometry correction data record (128 bytes per block)
+  - If fewer than 8 pairs are used, the array values are set to zero.
+  - Up to 64 energies can be stored (up to 8 blocks).
+- Calibration description record, calibration data records, and efficiency pairs records.
+- Region-of-interest records (128 bytes per block, 3 block)
+  - 1st record position: word 21 of record 1 (FORTRAN name = ROIRP1)
+- Hardware parameters records (128 bytes per record/block)
+  - Validity: falidity flag words at the beginning of the 1st record.
+  - Start pointer: word 12 of 1st record (FORTRAN name = ANARP4).
+- Personality record (128 bytes, 1 record)
+- Table description record (128 bytes per block)
+  - Pointer: TABREC pointer of record 1.
+- Table data record (128 bytes per block)
+  - follows the table description records.
+  - any unused values are set to -1
+- Spectrum records (128 bytes, 64-word per block/record)
+  - Pointer: --> how to calculate it?
+  - Real: (REAL*4) * (number of channels)
+  - Integer: (INTEGER*4) * (number of channels)
+
+Spectrum data:
+- position -- rec{1}w{31}{SPCTRP}, Spectrum record pointer (to 1st record)
+- length -- rec{1}w{33}{SPCCHN}, number of channels in spectrum
+
+** Real format spectra, Reocrd 1
+
+Record 1 (pp.30-31):
+|-------+-----+------+---------+----------------------------------------------------|
+|   No. | Pos | Type | Name    | Desc                                               |
+|-------+-----+------+---------+----------------------------------------------------|
+|     1 |   0 | 1h   | INFTYP  | 1                                                  |
+|     2 |   2 | 1h   | FILTYP  | 5                                                  |
+|     3 |   4 | 1h   |         | Contents flag                                      |
+|       |     |      |         | bit0=1, long filename                              |
+|       |     |      |         | bit1=1, ZDT with ROI                               |
+|-------+-----+------+---------+----------------------------------------------------|
+|     4 |   6 | 2x   |         | --                                                 |
+|-------+-----+------+---------+----------------------------------------------------|
+|     5 |   8 | 1h   | ACQIRP  | Acquisition information record pointer             |
+|     6 |  10 | 1h   | SAMDRP  | Sample description record pointer                  |
+|     7 |  12 | 1h   | DETDRP  | Detector description record pointer                |
+|     8 |  14 | 1h   | EBRDESC | EBR description record pointer                     |
+|     9 |  16 | 1h   | ANARP1  | 1st analysis parameters record pointer             |
+|    10 |  18 | 1h   | ANARP2  | 2nd analysis parameters record pointer             |
+|    11 |  20 | 1h   | ANARP3  | 3rd analysis parameters record pointer             |
+|    12 |  22 | 1h   | ANARP4  | 4th analysis parameters record pointer             |
+|    13 |  24 | 1h   | SRPDES  | absorption correction description record pointer   |
+|    14 |  26 | 1h   | IEQDESC | IEQ description record pointer                     |
+|    15 |  28 | 1h   | GEODES  | Geometry correction description record pointer     |
+|    16 |  30 | 1h   | MPCDESC | MPC description record pointer                     |
+|    17 |  32 | 1h   | CALDES  | Calibration description record pointer             |
+|    18 |  34 | 1h   | CALRP1  | 1st calibration data record pointer                |
+|    19 |  36 | 1h   | CALRP2  | 2nd calibration data record pointer                |
+|    20 |  38 | 1h   | EFFPRP  | Efficiency pairs record pointer (1st record)       |
+|-------+-----+------+---------+----------------------------------------------------|
+|    21 |  40 | 1h   | ROIRP1  | Record number of the 1st of the two ROI records    |
+|    22 |  42 | 1h   |         | Energy pairs record pointer                        |
+|    23 |  44 | 1h   |         | Number of energy pair records                      |
+|    24 |  46 | 2x   |         | --                                                 |
+|    25 |  48 | 1h   |         | Disable deconvolution of unknown peaks             |
+|    26 |  50 | 1h   |         | True = microcuries, False = becquerels             |
+|    27 |  52 | 1h   | PERPTR  | Laboratory and operator name record pointer        |
+|-------+-----+------+---------+----------------------------------------------------|
+|    28 |  54 | 1h   | MAXRCS  | Maximum record number ever used                    |
+|    29 |  56 | 1h   | LSTRES  | Maximum record number in use                       |
+|    30 |  58 | 1h   | EFFPNM  | Number of efficiency pairs records (see.20)        |
+|-------+-----+------+---------+----------------------------------------------------|
+|    31 |  60 | 1h   | SPCTRP  | Spectrum record pointer (pointer to 1st record)    |
+|    32 |  62 | 1h   | SPCRCN  | Number of records in the spectrum                  |
+|    33 |  64 | 1h   | SPCCHN  | Number of channels in spectrum                     |
+|-------+-----+------+---------+----------------------------------------------------|
+|    34 |  66 | 1h   | ABSTCH  | Physical start channel for data                    |
+|-------+-----+------+---------+----------------------------------------------------|
+|    35 |  68 | 1f   | ACQTIM  | Date and time of acquistion start in DECDAY format |
+|    37 |  72 | 1d   | ACQTI8  | Data and time as double precision DECDAY           |
+|-------+-----+------+---------+----------------------------------------------------|
+|    41 |  80 | 1h   | SEQNUM  | Sequence number                                    |
+|    42 |  82 | 1h   | MCANU   | MCA number as two ASCII characters (old) or        |
+|       |     |      |         | Detector number as integer for systems with        |
+|       |     |      |         | connections                                        |
+|    43 |  84 | 1h   | SEGNUM  | Segment number as two ASCII characters (old) or    |
+|       |     |      |         | as integer value 1 for systems with connections    |
+|-------+-----+------+---------+----------------------------------------------------|
+|    44 |  86 | 1h   | MCADVT  | MCA device type                                    |
+|    45 |  88 | 1h   | CHNSRT  | Start channel number                               |
+|    46 |  90 | 1f   | RLTMDT  | Real time in seconds                               |
+|    48 |  94 | 1f   | LVTMDT  | Live time in seconds                               |
+|-------+-----+------+---------+----------------------------------------------------|
+|    50 |  98 | 1h   |         | Pointer to MGA or U235 or CZTU records             |
+|    51 | 100 | 1h   |         | Pointer to FRAM records                            |
+|    52 | 102 | 2x   |         | --                                                 |
+|    53 | 104 | 1h   |         | Pointer to TRIFID records                          |
+|    54 | 106 | 1h   |         | Pointer to NaI records                             |
+| 55-62 | 108 | 16x  |         | --                                                 |
+| 63-64 | 124 | 1f   | RRSFCT  | Total random summing factor                        |
+|-------+-----+------+---------+----------------------------------------------------|
+
+
+** Integer format spectra, Record 1
+
+ Record 1 (pp.41-43):
+|-------+-----+------+---------+----------------------------------------|
+|   No. | Pos | Type | Name    | Desc                                   |
+|-------+-----+------+---------+----------------------------------------|
+|     1 |   0 | 1h   | INFTYP  | 1                                      |
+|     2 |   2 | 1h   | FILTYP  | 1                                      |
+|     3 |   4 | 1h   |         | Contents flag                          |
+|       |     |      |         | bit0=1, long filename                  |
+|       |     |      |         | bit1=1, ZDT with ROI                   |
+|-------+-----+------+---------+----------------------------------------|
+|     4 |   6 | 2x   |         | --                                     |
+|-------+-----+------+---------+----------------------------------------|
+|     5 |   8 | 1h   | ACQIRP  |                                        |
+|     6 |  10 | 1h   | SAMDRP  |                                        |
+|     7 |  12 | 1h   | DETDRP  |                                        |
+|     8 |  14 | 1h   | EBRDESC |                                        |
+|     9 |  16 | 1h   | ANARP1  |                                        |
+|    10 |  18 | 1h   | ANARP2  |                                        |
+|    11 |  20 | 1h   | ANARP3  |                                        |
+|    12 |  22 | 1h   | ANARP4  |                                        |
+|    13 |  24 | 1h   | SRPDES  |                                        |
+|    14 |  26 | 1h   | IEQDESC |                                        |
+|    15 |  28 | 1h   | GEODES  |                                        |
+|    16 |  30 | 1h   | MPCDESC |                                        |
+|    17 |  32 | 1h   | CALDES  |                                        |
+|    18 |  34 | 1h   | CALRP1  |                                        |
+|    19 |  36 | 1h   | CALRP2  |                                        |
+|    20 |  38 | 1h   | EFFPRP  |                                        |
+|-------+-----+------+---------+----------------------------------------|
+|    21 |  40 | 1h   | ROIRP1  |                                        |
+|    22 |  42 | 1h   |         | Energy pairs recode pointer            |
+|    23 |  44 | 1h   |         | Number of energy pair records          |
+|    24 |  46 | 2x   |         | --                                     |
+|    25 |  48 | 1h   |         | Disable deconvolution of unknown peaks |
+|    26 |  50 | 1h   |         | True = microcuries, False = becquerels |
+|    27 |  52 | 1h   | PERPTR  |                                        |
+|-------+-----+------+---------+----------------------------------------|
+|    28 |  54 | 1h   | MAXRCS  |                                        |
+|    29 |  56 | 1h   | LSTREC  |                                        |
+|    30 |  58 | 1h   | EFFPNM  |                                        |
+|-------+-----+------+---------+----------------------------------------|
+|    31 |  60 | 1h   | SPCTRP  |                                        |
+|    32 |  62 | 1h   | SPCRCN  |                                        |
+|    33 |  64 | 1h   | SPCCHN  |                                        |
+|    34 |  66 | 1h   | ABSTCH  |                                        |
+|-------+-----+------+---------+----------------------------------------|
+|    35 |  68 | 1f   | ACQTIM  |                                        |
+|    37 |  72 | 1d   | ACQTI8  |                                        |
+|-------+-----+------+---------+----------------------------------------|
+|    41 |  80 | 1h   | SEQNUM  |                                        |
+|    42 |  86 | 1h   | MCANU   |                                        |
+|    43 |  88 | 1h   | SEGNUM  |                                        |
+|-------+-----+------+---------+----------------------------------------|
+|    44 |  90 | 1h   | MCADVT  |                                        |
+|    45 |  92 | 1h   | CHNSRT  |                                        |
+|    46 |  90 | 1f   | RLTMDT  |                                        |
+|    48 |  94 | 1f   | LVTMDT  |                                        |
+|-------+-----+------+---------+----------------------------------------|
+| 50-64 |  98 | 30x  |         | --                                     |
+|-------+-----+------+---------+----------------------------------------|
+
+ Other records: as real spectrum but data is recored as 4-byte integers
+
+ Spectrum records: ...
+
+
+** Net spectrum spectra, Record 1
+
+Record 1 (pp.43-44):
+|-------+-----+------+---------+-------------------------|
+|   No. | Pos | Type | Name    | Desc                    |
+|-------+-----+------+---------+-------------------------|
+|     1 |   0 | 1h   | INFTYP  | 1                       |
+|     2 |   2 | 1h   | FILTYP  | 7 (real) or 3 (integer) |
+|     3 |   4 | 1h   |         | Contents flag           |
+|       |     |      |         | bit0=1, long filename   |
+|       |     |      |         | bit1=1, ZDT with ROI    |
+|     4 |   6 | 2x   |         | --                      |
+|-------+-----+------+---------+-------------------------|
+|     5 |   8 | 1h   | ACQIRP  |                         |
+|     6 |  10 | 1h   | SAMDRP  |                         |
+|     7 |  12 | 1h   | DETDRP  |                         |
+|     8 |  14 | 1h   | EBRDESC |                         |
+|     9 |  16 | 1h   | ANARP1  |                         |
+|    10 |  18 | 1h   | ANARP2  |                         |
+|    11 |  20 | 1h   | ANARP3  |                         |
+|    12 |  22 | 1h   | ANARP4  |                         |
+|    13 |  24 | 1h   | SRPDES  |                         |
+|    14 |  26 | 1h   | IEQDESC |                         |
+|    15 |  28 | 1h   | GEODES  |                         |
+|    16 |  30 | 1h   | MPCDESC |                         |
+|    17 |  32 | 1h   | CALDES  |                         |
+|    18 |  34 | 1h   | CALRP1  |                         |
+|    19 |  36 | 1h   | CALRP2  |                         |
+|    20 |  38 | 1h   | EFFPRP  |                         |
+|-------+-----+------+---------+-------------------------|
+|    21 |  40 | 1h   | ROIRP1  |                         |
+|    22 |  42 | 1h   | PERPTR  |                         |
+| 23-26 |  44 | 8x   |         | --                      |
+|    27 |  52 | 1h   | CALRP2  |                         |
+|-------+-----+------+---------+-------------------------|
+|    28 |  54 | 1h   | MAXRCS  |                         |
+|    29 |  56 | 1h   | LSTREC  |                         |
+|    30 |  58 | 1h   | EFFPNM  |                         |
+|-------+-----+------+---------+-------------------------|
+|    31 |  60 | 1h   | SPCTRP  |                         |
+|    32 |  62 | 1h   | SPCRCN  |                         |
+|    33 |  64 | 1h   | SPCCHN  |                         |
+|-------+-----+------+---------+-------------------------|
+|    34 |  66 | 2x   |         | --                      |
+|-------+-----+------+---------+-------------------------|
+|    35 |  68 | 1f   | ACQTIM  |                         |
+|    37 |  72 | 1d   | ACQTI8  |                         |
+|-------+-----+------+---------+-------------------------|
+|    41 |  80 | 1h   | SEQNUM  |                         |
+|    42 |  82 | 1c1x | SEQNAM  |                         |
+|    43 |  84 | 2x   |         | --                      |
+|-------+-----+------+---------+-------------------------|
+|    44 |  86 | 1h   | MCADVT  |                         |
+|    45 |  88 | 1h   | CHNSRT  |                         |
+|    46 |  90 | 1f   | RLTMDT  |                         |
+|    48 |  94 | 1f   | LVTMDT  |                         |
+|-------+-----+------+---------+-------------------------|
+| 50-64 |  98 | 30x  |         | --                      |
+|-------+-----+------+---------+-------------------------|
+
+
+** Acquisition information record
+
+Length: 128 bytes
+|-----+-----+------+-------------------------------------|
+| No. | Pos | Type | Desc                                |
+|   1 |   0 | 16s  | Default spectrum filename           |
+|   2 |  16 | 12s  | Date: "DD-MMM-YY*"                  |
+|     |     |      | *=1, date is after 2000             |
+|   3 |  28 | 10s  | Time: "HH:MM:SS"                    |
+|   4 |  38 | 10s  | Live time rounded to nearest second |
+|   5 |  48 | 10s  | Real time rounded to nearest second |
+|     |  58 | 38x  | --                                  |
+|   6 |  90 | 10s  | Start date of sample collection     |
+|     |     | 2x   | --                                  |
+|   7 | 102 | 8s   | Start time of sample collection     |
+|   8 | 110 | 10s  | Stop date of sample collection      |
+|   9 | 120 | 8s   | Stop time of sample collection      |
+|-----+-----+------+-------------------------------------|
+
+** Sample description record
+
+sec 4.11.3, as sec 4.7
+
+** Detector description record
+
+sec 4.11.4, as sec 4.4
+
+
+** First, second, and third analysis parameter
+
+sec 4.11.5, as sec 4.2
+
+** Absorption correction description record
+
+sec 4.11.6, pp.32
+
+Length: 128 bytes
+
+
+** Absorption correction data record
+
+sec 4.11.7, pp.33
+
+Length: 128 bytes
+
+
+** Geometry Correction description record
+
+sec 4.11.8, pp.33
+
+Length: 128 bytes
+
+** Geometry correction data record
+
+sec 4.11.9, pp.33
+
+Length: 128 bytes
+
+** Calibration description record, calibration data records, and efficiency pairs records
+
+sec 4.11.10, as sec 4.3
+
+** Region-of-interest (ROI) records
+
+sec 4.11.11, as sec 3.2
+
+ROI in .spc (sec 4.11.11, pp.34)
+
+The ROI records will be three consecutive records.
+- Position of 1st record: word 21 of record 1 (FORTRAN name: ROIRP1).
+- End of the list of regions: a negative start channel.
+
+Record 1: (128 bytes)
+|----------+------+---------------------------|
+| No. Word | Type | Use                       |
+|----------+------+---------------------------|
+|        0 | 1h   | -2                        |
+|        1 | 1h   | Start channel of 1st ROI  |
+|        2 | 1h   | Stop channel of 1st ROI   |
+|       .. | ..   | ...                       |
+|       61 | 1h   | Start channel of 31st ROI |
+|       62 | 1h   | Stop channel of 31st ROI  |
+|       63 | 2x   | --                        |
+|----------+------+---------------------------|
+
+Record 2: (128 bytes)
+|----------+------+---------------------------|
+| No. Word | Type | Use                       |
+|----------+------+---------------------------|
+|        0 | 1h   | Start channel of 32nd ROI |
+|        1 | 1h   | Stop channel of 32nd ROI  |
+|       .. | ..   | ...                       |
+|       62 | 1h   | Start channel of 63rd ROI |
+|       63 | 1h   | Stop channel of 63rd ROI  |
+|----------+------+---------------------------|
+
+Record 3: (128 bytes)
+|----------+------+-----------------------------------|
+| No. Word | Type | Use                               |
+|----------+------+-----------------------------------|
+|        0 | 1f   | Energy calibration zero intercept |
+|        2 | 1f   | Energy calibration slope          |
+|        4 | 1f   | Energy calibration quadratic term |
+|     6-63 | 106x | --                                |
+|----------+------+-----------------------------------|
+Note: an typo in pp.35
+
+
+** Hardware parameters records
+
+sec 4.11.12, pp.35-40
+
+12th record 1 (FORTRAN name = ANARP4)
+
+Records 1~4: ...
+
+Records 5~9: multi-nuclide MDA preset storage
+
+
+** Personality record
+
+sec 4.11.13, pp.40
+
+|----------+------+--------+-----------------|
+| No. Word | Type | Name   | Use             |
+|----------+------+--------+-----------------|
+|        1 | 64s  | LABNAM | Laboratory name |
+|       33 | 64s  | OPRNAM | Operator name   |
+|----------+------+--------+-----------------|
+
+** Table description record
+
+sec 4.11.14, pp.40
+
+Length: 128 bytes
+
+
+** Table data record
+
+sec 4.11.15, pp.41
+
+Length: 128 bytes
+
+
+** Spectrum records
+
+- Beginning with the channel number given, and going through the number of
+  channels in the file.
+- They are stored as 64-word records, which gives 32 data channles per record.
+- They are stored sequentially, beginning with record pointer given.
+
+- Real spectrum: (REAL*4) * (the number of channels)
+- Integer spectrum: (INTEGER*4) * (the number of channels)
+

@@ -1,0 +1,15 @@
+
+# Temporary files
+*.pyc
+*~
+.\#*
+
+# Test files
+test*
+*.test
+
+# Temporary paths
+__pycache__
+test/
+tmp/
+
