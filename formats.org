@@ -426,9 +426,8 @@ Length: 128 bytes
 |   3 |  28 | 10s  | Time: "HH:MM:SS"                    |
 |   4 |  38 | 10s  | Live time rounded to nearest second |
 |   5 |  48 | 10s  | Real time rounded to nearest second |
-|     |  58 | 38x  | --                                  |
-|   6 |  90 | 10s  | Start date of sample collection     |
-|     |     | 2x   | --                                  |
+|     |  58 | 34x  | --                                  |
+|   6 |  92 | 10s  | Start date of sample collection     |
 |   7 | 102 | 8s   | Start time of sample collection     |
 |   8 | 110 | 10s  | Stop date of sample collection      |
 |   9 | 120 | 8s   | Stop time of sample collection      |

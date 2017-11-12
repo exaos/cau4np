@@ -13,7 +13,7 @@ from datetime import date, timedelta, datetime
 
 def get_month_num(mn):
     """Map month name to number."""
-    
+
     return {"jan": 1,
             "feb": 2,
             "mar": 3,
@@ -28,19 +28,17 @@ def get_month_num(mn):
             "dec": 12}.get(mn, 0)
 
 
-def format_ortec_time(bsec, bdate, btime):
+def format_ortec_time(bsec, btime, bdate, is_paced=True):
     """Format ORTEC time as ISO format: yyyy-mm-dd HH:MM."""
 
     tSS = int(bsec) if bsec != b'\x00\x00' else 0
-    tHH, tMM = int(btime[:2]), int(btime[2:])
-
-    dd, yy = int(bdate[:2]), int(bdate[-3:-1])
-    if bdate.endswith(b'1'):
-        yy += 2000
-    else:
-        yy += 1900
-
-    mm = get_month_num(bdate[2:-3].decode().lower())
+    tHH = int(btime[:2])
+    tMM = int(btime[3:5]) if is_paced else int(btime[2:4])
+    dd = int(bdate[:2])
+    b_mon = bdate[3:6] if is_paced else bdate[2:5]
+    mm = get_month_num(b_mon.decode().lower())
+    yy = int(bdate[7:9]) if is_paced else int(bdate[6:8])
+    yy += 2000 if bdate.endswith(b'1') else 1900
 
     return datetime(yy, mm, dd, tHH, tMM, tSS).isoformat(" ")
 
@@ -105,7 +103,7 @@ def parse_ortec_chn(fin):
         "acq_real_time": float(h_raw[4]) * 0.020,
         "acq_live_time": float(h_raw[5]) * 0.020,
         # change start date_time to iso format
-        "start_time": format_ortec_time(h_raw[3], h_raw[6], h_raw[7]),
+        "start_time": format_ortec_time(h_raw[3], h_raw[7], h_raw[6], False),
         "offset": h_raw[8],
         "channel_length": h_raw[9]
     }
@@ -158,7 +156,7 @@ def parse_ortec_spc_header(ss):
 
     # ss[8:40] -- various pointers
     pointers = unpack("<16h", ss[8:40])
-    
+
     # ss[40:54] -- pointers to ROI records, etc.
 
     # ss[54:60] -- various numbers
@@ -189,6 +187,23 @@ def parse_ortec_spc_header(ss):
     }
 
 
+def parse_ortec_acq_info(ss):
+    """Parse acquisition information record(block)."""
+
+    assert len(ss) == 128
+
+    r = unpack("<16s 12s 10s 10s 10s 34x 10s 8s 10s 8s", ss)
+
+    return {
+        "default_filename": r[0].decode().strip(),
+        "datetime": format_ortec_time(r[2][6:8], r[2][:5], r[1][:10]),
+        "live_time_rounded": int(r[3]),
+        "real_time_rounded": int(r[4]),
+        "start_time": format_ortec_time(r[6][6:8], r[6][:5], r[5][:10]),
+        "stop_time": format_ortec_time(r[8][6:8], r[8][:5], r[7][:10]),
+    }
+
+
 def parse_ortec_spc(fin):
     """Parse ORTEC spectrum file (*.spc).
 
@@ -201,9 +216,17 @@ def parse_ortec_spc(fin):
     """
 
     # parse header (1st record)
+
     h = parse_ortec_spc_header(fin.read(128))
 
+    # parse acquisition information
+    acq_info_pos = (h["ptrs"][0]-1)*128
+    fin.seek(acq_info_pos)
+    acq = parse_ortec_acq_info(fin.read(128))
+    h.update(acq)
+
     # parse data
+
     d_pos = (h["spc_data_pos"] - 1)*128
     d_len = h["spc_num_of_chns"]*4
     assert d_len <= (h["spc_data_blocks"]*128)
@@ -220,7 +243,54 @@ def parse_ortec_spc(fin):
     }
 
 
+def parse_ortec_lib_header(ss):
+    """Parse LIBRARY file header.
+    Sec.6.1, pp.75-76"""
+
+    assert len(ss) == 128
+
+    fmt_h = "<6h 4x 16h 16x 18s 2x 18s 2h 22x"
+    r = unpack(fmt_h, ss)
+
+    return {
+        "raw": r
+    }
+
+
+def parse_ortec_lib_nuclide(ss):
+    """Parse nuclde records in library file.
+    Sec.6.1.2, pp.76-77
+
+    Each record is 21-words (42-bytes) long."""
+
+    assert len(ss) == 42
+
+    fmt_s = "<8s 2f 4h 8x 1h 2x 3h"
+    r = unpack(fmt_s, ss)
+
+    return {
+        "raw": r
+    }
+
+
+def parse_ortec_lib_peak(ss):
+    """Parse peak records in library file.
+    Sec.6.1.3, pp.77
+
+    Each record is 16-words (32-bytes) long."""
+
+    assert len(ss) == 32
+
+    fmt_s = "<2f 1h 6x 2h 4x 4h"
+    r = unpack(fmt_s, ss)
+
+    return {
+        "raw": r
+    }
+
+
 ############################################################
+
 
 def read_ortec_spc(fn):
     """Read ORTEC spectrum file (*.spc)."""
@@ -303,4 +373,3 @@ def read_ortec(fn):
         ".smp": read_ortec_smp,
         ".lib": read_ortec_lib
     }.get(fn[-4:].lower())(fn)
-
