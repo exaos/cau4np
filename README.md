@@ -1,5 +1,5 @@
 
-# `spectrafmt`: Python utility to read spectra in various formats
+# `spectra_fmt`: Python utility to read spectra in various formats
 
 Due to different data-acquisition systems, we may deposite many spectra in various formats in nuclear physics experiments. This bundle of python scripts is used to read various spectra into python for further processing by using many tools in the python ecosystem, e.g., numpy, scipy, matplotlib, etc.
 
