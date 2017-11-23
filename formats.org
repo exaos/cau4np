@@ -1,28 +1,14 @@
+# -*- mode: org; coding: utf-8; -*-
+#+TITLE: Spectrum formats
+#+AUTHOR: Vivodo Lio
 
-* Python struct format strings
+* A standard for describing spectrum data
 
-1. Byte order, size, and alignment
-   - @ -- native, native, native
-   - = -- native, standard, none
-   - < -- little endian, standard, none
-   - > -- big endian, standard, none
-   - ! -- network (= big-endian), standard, none
-2. Format characters
-  - x  -- pad byte, 1
-  - c  -- char, 1
-  - bB -- char (int), 1
-  - ? -- _Bool, bool, 1
-  - hH -- short (int), 2
-  - iI -- int, 4
-  - lL -- long (int), 4
-  - qQ -- long long (int), 8
-  - nN -- ssize_t / size_t, only available for the native size
-  - f  -- float, 4
-  - d  -- double, 8
-  - s  -- char[], bytes
-  - p  -- char[], bytes
-  - P  -- void *, integer
+A typical multi-channel spectrum can be presented as the following:
+#+INCLUDE: "./sample-spec-multi-chn.yaml" src yaml
 
+A typical spectrum of pulse waveform can be presented as:
+#+INCLUDE: "./sample-spec-waveform.yaml" src yaml
 
 * MCA8000 (PMCA) -- .mca
 
@@ -567,4 +553,66 @@ Length: 128 bytes
 
 - Real spectrum: (REAL*4) * (the number of channels)
 - Integer spectrum: (INTEGER*4) * (the number of channels)
+
+* References
+
+** Python struct format strings
+
+1. Byte order, size, and alignment
+|-----+----------------+----------+-----------|
+| Sym | Byte Order     | Size     | Alignment |
+|-----+----------------+----------+-----------|
+| ~@~ | native         | native   | native    |
+| ~=~ | native         | standard | none      |
+| ~<~ | little endian  | standard | none      |
+| ~>~ | big endian     | standard | none      |
+| ~!~ | network (=big) | standard | none      |
+|-----+----------------+----------+-----------|
+2. Format characters
+|-----+-----------------+------|
+| Sym | Type            | Size |
+|-----+-----------------+------|
+| x   | pad byte        |    1 |
+| c   | char            |    1 |
+| bB  | char (int)      |    1 |
+| ?   | bool            |    1 |
+| hH  | short           |    2 |
+| iI  | int             |    4 |
+| lL  | long            |    4 |
+| qQ  | long long       |    8 |
+| nN  | ssize_t/szie_t  |    - |
+| f   | float           |    4 |
+| d   | double          |    8 |
+| s   | char[], bytes   |    - |
+| p   | char[], bytes   |    - |
+| P   | void *, integer |    - |
+|-----+-----------------+------|
+
+Notes:
+- network byte-order is equivalent to big-endian.
+- ~ssize/t~ / ~size_t~ is only available for the native size.
+- ~void *~ is platform-depended.
+
+** HDF5 Types
+
+Reference: https://support.hdfgroup.org/HDF5/doc/ddl.html
+
+Atomic types in HDF5:
+- Integer: ~H5T_STD_~ + \\
+  I8BE, IBLE, I16BE, I16LE, I32BE, I32LE, I64BE, I64LE, \\
+  U8BE, U8LE, U16BE, U16LE, U32BE, U32LE, U64BE, U64LE; \\
+  ~H5T_NATIVE_~ + \\
+  CHAR, UCHAR, SHORT, USHORT, INT, UINT, LONG, ULONG, LLONG, ULLONG
+- Float: ~H5T_IEEE_~ + F32BE, F32LE, F64BE, F64LE, \\
+  ~H5T_NATIVE_" + FLOAT, DOUBLE, LDOUBLE
+- Time: ~H5T_TIME~, not yet implemented
+- String: ~H5T_STRING~ { \\
+  STRSIZE <strsize> ; STRPAD <strpad> ; CSET <cset> ; CTYPE <ctype> ; }
+  - ~<strpad>~: ~H5T_STR_~ + NULLTERM, NULLPAD, SPACEDPAD
+  - ~<cset>~: ~H5T_CSET_~ + ASCII, UTF8
+  - ~<ctype>~: ~H5T_~ + ~C_S1~, ~FORTRAN_S1~
+- BitField: ~H5T_STD_~ + B8BE, B8LE, B16BE, B16LE, B32BE, B32LE, B64BE, B64LE
+- Opaque: ~H5T_OPAQUE~
+- Reference: ~H5T_REFERENCE~
+- Enum: ~H5T_ENUM~
 

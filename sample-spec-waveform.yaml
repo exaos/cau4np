@@ -1,0 +1,50 @@
+# -*- mode: yaml; coding: utf-8; -*-
+# The sample data of a pulse waveform
+
+data:   # the dataset, #RO#
+  dtype: i16     # data type
+  dlen: 8192     # data length
+  dset: [0, 1, 2, ..., 8191]
+info-acq:  # acquisition information, #RO#
+  uuid:    # a uuid
+  timestamp: 0     # a long long int used for time stamp
+  trigger:   0.4   # where is the trigger
+  event-id:  100   # id of this wave
+  device:  # device information used for acquisition
+    id:      0
+    name:    0
+    channel: 0
+  pattern:   0    # used as needed
+  persistency:    # a hash number
+info-op:   # operation information, #RO#
+  sampe: Fe
+  r-source: descripton of radiation sources, nat = natural
+  detector: description of the detector
+  operator: "Jim Candy"    # Who did?
+  location: "#616-3207"    # Where did?
+  loc-gps: [0.000, 0.000]  # location in GPS
+info-cali:  # information for calibration
+  polarity:  -1       # -1=negative, 0=bi-polar, 1=positive
+  threshold: 10.0     # mV
+  baseline:  1000.0   # where is the baseline
+  dc-offset: 0.0      # used with baseline
+  yrange:   # voltage range
+    vpp:    1.0  # volt
+    vhigh: +0.5  # high level
+    vlow:  -0.5  # low level
+  resolutions:
+    xbin: 1.0     # nano-seconds
+    ybin: 1.0     # mV
+    tstamp: 17.0  # nano-seconds
+  units:
+    xbin: nsec   # nano-second
+    ybin: mV     # micro-volt
+    yrange: V    # volt
+    tstamp: nsec # nano-second
+info-ana:   # information for analysis
+  roi: [  # regions of interests, a.k.a., soft gates
+     [100, 126],
+     [200, 256] ]
+  psd:     # pulse-shape discrimination, use for particle discrimination
+  energy:  # calculated by bin-intergrating
+info-misc: # miscellaneous information, use as needed

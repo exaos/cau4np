@@ -1,0 +1,48 @@
+# -*- mode: yaml; coding: utf-8; -*-
+# The sample data of a multi-channel spectrum
+
+data:  # the dataset, #RO#
+  dtype: i16                    # Data type stored
+  dlen:  1024                   # data length, 0 = variable length
+  dset:  [0, 1, 2, ..., 1023]   # the data array
+info-acq: # information about acquisition, #RO#
+  uuid:   # a uuid
+  time:
+    start:      # acquisition start time
+      sec:  0   # Unix time in seconds since 1970-01-01 00:00:00 +0000
+      nsec: 0   # nano second get by system clock
+    stop:       # acquisition stop time
+      sec:  0
+      nsec: 0
+    live:   0
+    real:   0
+  device:   # device information
+    id:     0   # an id number
+    name:   0   # optional
+  persistency:  # a hash number
+info-op:  # operation information, #RO#
+  sample:  Fe
+  detector: description of the detector
+  r-source: description of radiation sources, nat = natural
+  operator:  "Jim Candy"   # Who did the job
+  location:  "#616-3207"   # Where did the acquisition occur
+  loc-gps: [0.000, 0.000]  # GPS-presented location
+info-cali:  # information for calibration
+  precision: 1.0  # precisions about channels
+  peak:     # calibration parameter for peak shape
+    zero-intercept: 0.3   # where is the zero
+    slope:  0.99          #
+    quadratic: 0.001      # quadratic term
+  energy:   # calibration parameter for energy
+    zero-intercept: 0.1   # where is the zero point?
+    slope:  1.01
+    quadratic: 0.001
+  absorption-correction:  # information for correcting absorption
+  efficiency:
+    polynomial-coefficient:
+info-ana:   # information for analysis
+  roi: [  # region of interests
+     [11, 32],
+     [23, 33],
+     [123, 345] ]
+info-misc:  # miscellaneous information, use as needed
