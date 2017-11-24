@@ -2,26 +2,31 @@
 # The sample data of a pulse waveform
 
 data:   # the dataset, #RO#
-  dtype: i16     # data type
+  dtype: i16     # data type: {i,u}{8,16,32,64}, f{32,64}
   dlen: 8192     # data length
   dset: [0, 1, 2, ..., 8191]
 info-acq:  # acquisition information, #RO#
-  uuid:    # a uuid
+  uuid:    # a uuid, generated as an attribute in HDF5
   timestamp: 0     # a long long int used for time stamp
   trigger:   0.4   # where is the trigger
-  event-id:  100   # id of this wave
+  event-id:  100   # event id of this waveform
   device:  # device information used for acquisition
     id:      0
     name:    0
     channel: 0
   pattern:   0    # used as needed
-  persistency:    # a hash number
+  original:  # original data info where it is converted from
+    filename:  # the file name
+    filetype: wavedump  # the original filetype
+  persistency:    # a hash number, generated as an attribute in HDF5
 info-op:   # operation information, #RO#
   sampe: Fe
   r-source: descripton of radiation sources, nat = natural
   detector: description of the detector
-  operator: "Jim Candy"    # Who did?
-  location: "#616-3207"    # Where did?
+  run: # the run number in the experiment
+  project: the-test-proj   # the project name
+  operator: Jim Candy      # Who did?
+  location: \#616-3207     # Where did?
   loc-gps: [0.000, 0.000]  # location in GPS
 info-cali:  # information for calibration
   polarity:  -1       # -1=negative, 0=bi-polar, 1=positive
@@ -48,3 +53,4 @@ info-ana:   # information for analysis
   psd:     # pulse-shape discrimination, use for particle discrimination
   energy:  # calculated by bin-intergrating
 info-misc: # miscellaneous information, use as needed
+  purpose:  Used for test  # the purpose of this waveform

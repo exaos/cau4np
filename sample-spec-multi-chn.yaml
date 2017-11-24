@@ -2,11 +2,11 @@
 # The sample data of a multi-channel spectrum
 
 data:  # the dataset, #RO#
-  dtype: i16                    # Data type stored
-  dlen:  1024                   # data length, 0 = variable length
+  dtype: i16          # Data type stored: {i,u}{8,16,32,64}, f{32,64}
+  dlen:  1024         # data length, 0 = variable length
   dset:  [0, 1, 2, ..., 1023]   # the data array
 info-acq: # information about acquisition, #RO#
-  uuid:   # a uuid
+  uuid:   # a uuid, set as an attribute in HDF5 file
   time:
     start:      # acquisition start time
       sec:  0   # Unix time in seconds since 1970-01-01 00:00:00 +0000
@@ -19,24 +19,29 @@ info-acq: # information about acquisition, #RO#
   device:   # device information
     id:     0   # an id number
     name:   0   # optional
-  persistency:  # a hash number
+  original:   # original data info where it is converted from
+    filename:   # the file name
+    filetype: ORTEC SPC # the original filetype
+  persistency:  # a hash number, set as an attribute in HDF5 file
 info-op:  # operation information, #RO#
-  sample:  Fe
-  detector: description of the detector
+  sample:   Fe
   r-source: description of radiation sources, nat = natural
-  operator:  "Jim Candy"   # Who did the job
-  location:  "#616-3207"   # Where did the acquisition occur
-  loc-gps: [0.000, 0.000]  # GPS-presented location
+  detector: description of the detector
+  run:   # The run number in the experiment
+  project:  The-Test-Project # The project name
+  operator:  Jim Candy       # Who did the job
+  location:  \#616-3207      # Where did the acquisition occur
+  loc-gps: [0.000, 0.000]    # GPS-presented location
 info-cali:  # information for calibration
   precision: 1.0  # precisions about channels
   peak:     # calibration parameter for peak shape
-    zero-intercept: 0.3   # where is the zero
-    slope:  0.99          #
-    quadratic: 0.001      # quadratic term
+    zero-intercept: 0.3    # where is the zero
+    slope:          0.99   #
+    quadratic:      0.001  # quadratic term
   energy:   # calibration parameter for energy
     zero-intercept: 0.1   # where is the zero point?
-    slope:  1.01
-    quadratic: 0.001
+    slope:          1.01
+    quadratic:      0.001
   absorption-correction:  # information for correcting absorption
   efficiency:
     polynomial-coefficient:
@@ -46,3 +51,4 @@ info-ana:   # information for analysis
      [23, 33],
      [123, 345] ]
 info-misc:  # miscellaneous information, use as needed
+  purpose: Used for test  # the purpose of this spectrum
