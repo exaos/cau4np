@@ -5,7 +5,7 @@
 * A standard for describing spectrum data
 
 A typical multi-channel spectrum can be presented as the following:
-#+INCLUDE: "./sample-spec-multi-chn.yaml" src yaml
+#+INCLUDE: "./sample-spec-mca.yaml" src yaml
 
 A typical spectrum of pulse waveform can be presented as:
 #+INCLUDE: "./sample-spec-waveform.yaml" src yaml
@@ -25,7 +25,6 @@ LABEL - keV
 ...
 <<END>>
 #+END_EXAMPLE
-
 
 * ORTEC file structures
 
@@ -554,7 +553,7 @@ Length: 128 bytes
 - Real spectrum: (REAL*4) * (the number of channels)
 - Integer spectrum: (INTEGER*4) * (the number of channels)
 
-* References
+* Appendix
 
 Representation of primitive types is borrowed from rust:
 - integer: ~[i|u]{8,16,32,64,size}~
@@ -624,33 +623,36 @@ Atomic types in HDF5:
 
 ** NumPy Types
 
-|--------------+-----+----------------------------------------------------------------------|
-| Type         |   L | Description                                                          |
-|--------------+-----+----------------------------------------------------------------------|
-| ~bool_~      |   1 | Boolean (True or False) stored as a byte                             |
-| ~int_~       | 4/8 | Default integer type                                                 |
-|              |     | (same as C long; normally either int64 or int32)                     |
-| ~intc~       | 4/8 | Identical to C int (normally int32 or int64)                         |
-| ~intp~       | 4/8 | Integer used for indexing                                            |
-|              |     | (same as C ssize_t; normally either int32 or int64)                  |
-| ~int8~       |   1 | Byte (-128 to 127)                                                   |
-| ~int16~      |   2 | Integer (-32768 to 32767)                                            |
-| ~int32~      |   4 | Integer (-2147483648 to 2147483647)                                  |
-| ~int64~      |   8 | Integer (-9223372036854775808 to 9223372036854775807)                |
-| ~uint8~      |   1 | Unsigned integer (0 to 255)                                          |
-| ~uint16~     |   2 | Unsigned integer (0 to 65535)                                        |
-| ~uint32~     |   4 | Unsigned integer (0 to 4294967295)                                   |
-| ~uint64~     |   8 | Unsigned integer (0 to 18446744073709551615)                         |
-| ~float_~     |   8 | Shorthand for float64.                                               |
-| ~float16~    |   2 | Half precision float: sign bit, 5 bits exponent, 10 bits mantissa    |
-| ~float32~    |   4 | Single precision float: sign bit, 8 bits exponent, 23 bits mantissa  |
-| ~float64~    |   8 | Double precision float: sign bit, 11 bits exponent, 52 bits mantissa |
-| ~complex_~   |  16 | Shorthand for complex128.                                            |
-| ~complex64~  |   8 | Complex number, represented by two 32-bit floats                     |
-|              |     | (real and imaginary components)                                      |
-| ~complex128~ |  16 | Complex number, represented by two 64-bit floats                     |
-|              |     | (real and imaginary components)                                      |
-|--------------+-----+----------------------------------------------------------------------|
+|--------------+-----+-------------------------------------------------------|
+| Type         |   L | Description                                           |
+|--------------+-----+-------------------------------------------------------|
+| ~bool_~      |   1 | Boolean (True or False) stored as a byte              |
+| ~int_~       | 4/8 | Default integer type                                  |
+|              |     | (same as C long; normally either int64 or int32)      |
+| ~intc~       | 4/8 | Identical to C int (normally int32 or int64)          |
+| ~intp~       | 4/8 | Integer used for indexing                             |
+|              |     | (same as C ssize_t; normally either int32 or int64)   |
+| ~int8~       |   1 | Byte (-128 to 127)                                    |
+| ~int16~      |   2 | Integer (-32768 to 32767)                             |
+| ~int32~      |   4 | Integer (-2147483648 to 2147483647)                   |
+| ~int64~      |   8 | Integer (-9223372036854775808 to 9223372036854775807) |
+| ~uint8~      |   1 | Unsigned integer (0 to 255)                           |
+| ~uint16~     |   2 | Unsigned integer (0 to 65535)                         |
+| ~uint32~     |   4 | Unsigned integer (0 to 4294967295)                    |
+| ~uint64~     |   8 | Unsigned integer (0 to 18446744073709551615)          |
+| ~float_~     |   8 | Shorthand for float64.                                |
+| ~float16~    |   2 | Half precision float:                                 |
+|              |     | sign bit, 5 bits exponent, 10 bits mantissa           |
+| ~float32~    |   4 | Single precision float:                               |
+|              |     | sign bit, 8 bits exponent, 23 bits mantissa           |
+| ~float64~    |   8 | Double precision float:                               |
+|              |     | sign bit, 11 bits exponent, 52 bits mantissa          |
+| ~complex_~   |  16 | Shorthand for complex128.                             |
+| ~complex64~  |   8 | Complex number, represented by two 32-bit floats      |
+|              |     | (real and imaginary components)                       |
+| ~complex128~ |  16 | Complex number, represented by two 64-bit floats      |
+|              |     | (real and imaginary components)                       |
+|--------------+-----+-------------------------------------------------------|
 
 Additionally to intc the platform dependent C integer types short, long,
 longlong and their unsigned versions are defined.
