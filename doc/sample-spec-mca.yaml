@@ -32,6 +32,7 @@ info-op:  # operation information, #RO#
   operator:  Jim Candy       # Who did the job
   location:  \#616-3207      # Where did the acquisition occur
   loc-gps: [0.000, 0.000]    # GPS-presented location
+  description: as-is
 info-cali:  # information for calibration
   precision: 1.0  # precisions about channels
   peak:     # calibration parameter for peak shape
@@ -42,6 +43,7 @@ info-cali:  # information for calibration
     zero-intercept: 0.1   # where is the zero point?
     slope:          1.01
     quadratic:      0.001
+    points: [[0., 0.], [1000, 59.54]] # calibration data
   absorption-correction:  # information for correcting absorption
   efficiency:
     polynomial-coefficient:
@@ -51,4 +53,4 @@ info-ana:   # information for analysis
      [23, 33],
      [123, 345] ]
 info-misc:  # miscellaneous information, use as needed
-  purpose: Used for test  # the purpose of this spectrum
+  misc: as-is

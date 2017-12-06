@@ -10,9 +10,10 @@ from __future__ import absolute_import
 from __future__ import print_function
 import sys
 import re
+from datetime import datetime
 
 
-def parse_mca_str(sraw):
+def parse_pmca_str(sraw):
     """Parse MCA data in text."""
 
     k_idx = []
@@ -69,12 +70,64 @@ def parse_mca_str(sraw):
         else:
             pass
 
-    return spec
+    return reformat_pmca_spec(spec)
 
 
-def read_mca(fm):
+def reformat_pmca_spec(spec):
+    '''
+    Re-format spectrum.
+    '''
+    def tstr_to_sec(tstr):
+        try:
+            dt = datetime.strptime(tstr, '%m/%d/%Y %H:%M:%S').timestamp()
+        except:
+            dt = 0.0
+        finally:
+            return dt
+
+    data = {}
+    if 'DATA' in spec:
+        data['dtype'] = 'i32'
+        data['dlen'] = len(spec['DATA'])
+        data['dset'] = spec.pop('DATA')
+    info_acq = {'time': {}, 'device': {}, 'original': {}}
+    info_op = {}
+    info_ana = {}
+    info_cali = {}
+    info_misc = {}
+    if 'INFO' in spec:
+        if 'START_TIME' in spec['INFO']:
+            info_acq['time']['start'] = {
+                'sec': tstr_to_sec(spec['INFO'].pop('START_TIME')),
+                'nsec': 0.0}
+        if 'LIVE_TIME' in spec['INFO']:
+            info_acq['time']['live'] = float(spec['INFO'].pop('LIVE_TIME'))
+        if 'REAL_TIME' in spec['INFO']:
+            info_acq['time']['real'] = float(spec['INFO'].pop('REAL_TIME'))
+        if 'TAG' in spec['INFO']:
+            info_op['sample'] = spec['INFO'].pop('TAG')
+        if 'DESCRIPTION' in spec['INFO']:
+            info_op['description'] = spec['INFO'].pop('DESCRIPTION')
+        info_misc.update(spec['INFO'])
+    if 'CALIBRATION' in spec:
+        info_cali['energy'] = {}
+        r_cali = spec.pop('CALI')
+        if 'data' in r_cali:
+            info_cali['energy']['points'] = r_cali['data']
+    if 'ROI' in spec:
+        info_ana['roi'] = spec.pop('ROI')
+
+    return {'data': data,
+            'info_acq': info_acq,
+            'info_op': info_op,
+            'info_ana': info_ana,
+            'info_cali': info_cali,
+            'info_misc': info_misc}
+
+
+def read_pmca(fm):
     """
-    Purpose: Read data acquired by MCA8000A through software "pcma".
+    Purpose: Read data acquired by MCA8000A through software "pmca".
     Extention: .mca
     """
 
@@ -82,7 +135,7 @@ def read_mca(fm):
         sraw = [l.strip() for l in fin.readlines()]
         assert sraw is not []
 
-    return parse_mca_str(sraw)
+    return parse_pmca_str(sraw)
 
 
 # The main
@@ -93,6 +146,5 @@ if __name__ == '__main__':
         print(u"Usage: {} <file.mca>".format(sys.argv[0]))
         sys.exit(0)
 
-    spec = read_mca(sys.argv[1])
-    if u'INFO' in spec:
-        pprint(spec['INFO'])
+    spec = read_pmca(sys.argv[1])
+    pprint(spec, compact=True)

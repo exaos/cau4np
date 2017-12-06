@@ -28,6 +28,7 @@ info-op:   # operation information, #RO#
   operator: Jim Candy      # Who did?
   location: \#616-3207     # Where did?
   loc-gps: [0.000, 0.000]  # location in GPS
+  description: as-is
 info-cali:  # information for calibration
   polarity:  -1       # -1=negative, 0=bi-polar, 1=positive
   threshold: 10.0     # mV

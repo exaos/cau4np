@@ -4,7 +4,7 @@ Due to different data-acquisition systems, we may deposite vast spectra in vario
 
 ## Formats currently supported
 
-- `datafmts/read_mca.py` :: To handle `.mca` files acquired by MCA8000A using software *PMCA.exe* from AMPTEK.
+- `datafmts/read_pmca.py` :: To handle `.mca` files acquired by MCA8000A using software *PMCA.exe* from AMPTEK.
 - `datafmts/read_ortec.py` :: To handle various data acquired by softwares from ORTEC. This script currently supports `.chn` (Integer Data File) and `.spc` (Raw or Net Spectrum File in Real/Integer format).
 
 ## Changelog
