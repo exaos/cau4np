@@ -673,4 +673,3 @@ longlong and their unsigned versions are defined.
 - Boolean: bool
 - Character: char
 - Compound types: tuples and arrays
-
