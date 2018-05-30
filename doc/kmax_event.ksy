@@ -9,11 +9,10 @@ seq:
     size: 512
   - id: event_block
     type: kmax_event_block
-    size: (event_block.blk_count * event_block.event_size) * 4 + 8
-    repeat: expr
-    repeat-expr: eos
-  - id: footer
-    contents: [0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF]
+    repeat: until
+    repeat-until: _.is_footer
+  - id: event_footer
+    contents: [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 types:
   kmax_header:
     seq:
@@ -21,13 +20,25 @@ types:
         contents: [ 0x02, 0x00, 0x00, 0x01 ]
   kmax_event_block:
     seq:
-      - id: event_size
-        type: u2
-      - id: event_type
-        type: u2
+      - id: event_par
+        type: u4
       - id: blk_count
         type: u4
       - id: event_entry
-        type: u4
+        type: kmax_event_entry
         repeat: expr
-        repeat-expr: event_size
+        repeat-expr: blk_count
+    types:
+      kmax_event_entry:
+        seq:
+          - id: par
+            type: u4
+            repeat: expr
+            repeat-expr: _parent.event_size
+    instances:
+      is_footer:
+        value: event_par == 0xFFFF_FFFF and blk_count == 0xFFFF_FFFF
+      event_size:
+        value: (event_par & 0xFFFF)
+      event_type:
+        value: (event_par & 0xFFFF_0000) >> 16
