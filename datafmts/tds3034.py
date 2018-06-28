@@ -45,7 +45,9 @@ def _tek_tds3000_isf_get_header(raw_s):
         return None
 
 
-wave_dtype = np.dtype([("time", np.float32), ("volt", np.float32)])
+wave_dtype = np.dtype([("T", np.float32),
+                       ("V_f", np.float32),
+                       ("V_i", np.int16)])
 
 
 def parse_tds3000_isf(fn):
@@ -61,10 +63,25 @@ def parse_tds3000_isf(fn):
         dat = unpack(dat_str, f.read(hd["_rec_len"]))
         hd['wave'] = np.array(
             [(hd['XZERO'] + hd['XINCR'] * (j - hd["PT_OFF"]),
-              hd['YZERO'] + hd['YMULT'] * (float(dat[j]) - hd["YOFF"]))
+              hd['YZERO'] + hd['YMULT'] * (float(dat[j]) - hd["YOFF"]),
+              int(float(dat[j]) - hd["YOFF"]))
              for j in range(hd["NR_PT"])],
             dtype=wave_dtype)
     return hd
+
+
+def dump_tds3000_isf_to_txt(fn, ftxt, with_header=False):
+    print("Process {} ...".format(fn))
+    hd = parse_tds3000_isf(fn)
+    wave = hd.pop("wave")
+    with open(ftxt, "w") as fout:
+        if with_header:
+            for k in hd:
+                fout.write("{}: {!s}\n".format(k,hd[k]))
+            fout.write("\n" + "-"*60 + "\n")
+        fout.write("{:>10s} {:>10s} {:>8s}\n".format("T (s)","V (float)", "V (int)"))
+        for d in wave:
+            fout.write("{:+10.4g} {:+10.4g} {:8d}\n".format(d["T"], d["V_f"], d["V_i"]))
 
 
 def _dump_tds3000_isf_to_hdf5(fn, f5grp):
@@ -113,7 +130,6 @@ def dump_tds3000_isf_in_dir(fdir, fout=None):
 
 
 if __name__ == "__main__":
-    import sys
     import argparse
 
     parser = argparse.ArgumentParser(description="Example")
