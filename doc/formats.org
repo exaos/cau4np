@@ -553,6 +553,43 @@ Length: 128 bytes
 - Real spectrum: (REAL*4) * (the number of channels)
 - Integer spectrum: (INTEGER*4) * (the number of channels)
 
+* Tektronix TDS3034 binary data (~.isf~)
+
+ref: https://www.tek.com.cn/support/faqs/what-format-isf-file
+
+The file looks like this:
+#+BEGIN_QUOTE
+:WFMPRE:BYT_NR 2;BIT_NR 16;ENCDG BIN;BN_FMT RI;BYT_OR MSB;NR_PT
+10000;WFID "Ch1, DC coupling, 2.0E0 V/div, 1.0E-5 s/div, 10000 points,
+Sample mode";PT_FMT Y;XINCR 1.0E-8;PT_OFF 0;XZERO 3.5E-4;XUNIT
+"s";YMULT 3.125E-4;YZERO 0.0E0;YOFF 0.0E0;YUNIT "V";:CURVE
+#520000<binary data>
+#+END_QUOTE
+
+The values from the “:” at the beginning of the file to the “;” just
+before the “:curve” are the preamble. The binary block begins with
+“:CURVE #”. The next value is referred to in the manual as X. This is
+the ASCII representation of the number of bytes that follow that
+represent the record length. The next bytes, referred to in the manual
+as the YYY bytes are the ASCII representation of the record length
+field. In this example the 5 tells us that the next 5 bytes represent
+the record length. The next 5 bytes are 20000, which tells us that the
+number of bytes returned in the curve will be 20,000. Since we can see
+in the preamble that the number of bytes for each acquired sample
+point is 2 (BYT_NR 2) we know that the number of sample acquired was
+20,000 / 2 or 10,000 samples.
+
+- Related Product Series:
+  - TDS3000, MSO3000 / DPO3000, MSO2000B / DPO2000B
+- Product:
+  - TDS3014B, TDS3032B, TDS3034B, TDS3052B, TDS3054B, TDS3012,
+    TDS3014, TDS3032, TDS3034, TDS3052, TDS3054, TDS3012B, TDS3024B,
+    TDS3044B, TDS3064B, DPO4054, DPO4034, DPO4032, DPO4104, MSO4032,
+    MSO4034, MSO4054, MSO4104, TDS3012C, TDS3014C, TDS3032C, TDS3034C,
+    TDS3052C, TDS3054C, DPO3012, DPO3014, DPO3032, DPO3034, DPO3052,
+    DPO3054, DPO2012, DPO2014, DPO2024, MSO2012, MSO2014, MSO2024,
+    MSO3012, MSO3014, MSO3032, MSO3034, MSO3054
+
 * Appendix
 
 Representation of primitive types is borrowed from rust:
