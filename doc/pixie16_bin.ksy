@@ -10,33 +10,56 @@ seq:
 types:
   event_type:
     seq:
-      - id: header
-        type: pixie_header
+      - id: fixed_h
+        type: pixie_fixed_header
         size: 16
+      - id: eng_sums
+        type: pixie_raw_eng_sums
+        size: 16
+        if: (header_len == 8) or (header_len == 16) or (header_len == 18)
+      - id: qdc_sums
+        type: pixie_qdc_sums
+        size: 32
+        if: (header_len == 12) or (header_len == 16) or (header_len == 18)
+      - id: ext_clock_timestamp
+        type: pixie_ext_clock_timestamp
+        size: 8
+        if: (header_len == 6) or (header_len == 10) or (header_len == 18)
       - id: trace
-        type: u4
+        type: u2
         repeat: expr
         repeat-expr: trace_len
+        if: trace_len > 0
     instances:
       channel:
-        value: header.r0 & 0xF
+        value: fixed_h.r0 & 0xF
       slot:
-        value: (header.r0 & 0xF0) >> 4
+        value: (fixed_h.r0 & 0xF0) >> 4
       crate:
-        value: (header.r0 & 0xF00) >> 8
+        value: (fixed_h.r0 & 0xF00) >> 8
       header_len:
-        value: (header.r0 & 0x1_F000) >> 12
+        value: (fixed_h.r0 & 0x1_F000) >> 12
       event_len:
-        value: (header.r0 & 0x7FFE_0000) >> 17
+        value: (fixed_h.r0 & 0x7FFE_0000) >> 17
       finish_code:
-        value: (header.r0 & 0x8000_0000) >> 31
-      event_time:
-        value: (header.r2 & 0xFFFF) + header.r1
+        value: (fixed_h.r0 & 0x8000_0000) >> 31
+      event_time_lo:
+        value: fixed_h.r1
+      event_time_hi:
+        value: fixed_h.r2 & 0xFFFF
+      cfd_frac_time:
+        value: (fixed_h.r2 & 0x3FFF_0000) >> 16
+      cfd_trig_src_bit:
+        value: (fixed_h.r2 & 0x4000_0000) >> 30
+      cfd_trig_forced:
+        value: (fixed_h.r2 & 0x8000_0000) >> 31
       event_energy:
-        value: header.r3 & 0xFFFF
+        value: fixed_h.r3 & 0xFFFF
       trace_len:
-        value: (header.r3 &0x7FFF_0000) >> 16
-  pixie_header:
+        value: (fixed_h.r3 & 0x7FFF_0000) >> 16
+      trace_out_of_range:
+        value: (fixed_h.r3 & 0x8000_0000) >> 31
+  pixie_fixed_header:
     seq:
       - id: r0
         type: u4
@@ -45,4 +68,26 @@ types:
       - id: r2
         type: u4
       - id: r3
+        type: u4
+  pixie_raw_eng_sums:
+    seq:
+      - id: eng_sum_trailing
+        type: u4
+      - id: eng_sum_leading
+        type: u4
+      - id: eng_sum_gap
+        type: u4
+      - id: baseline
+        type: u4
+  pixie_qdc_sums:
+    seq:
+      - id: qdc_sums
+        type: u4
+        repeat: expr
+        repeat-expr: 8
+  pixie_ext_clock_timestamp:
+    seq:
+      - id: ext_ts_lo
+        type: u4
+      - id: ext_ts_hi
         type: u4
