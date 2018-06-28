@@ -79,9 +79,9 @@ def dump_tds3000_isf_to_txt(fn, ftxt, with_header=False):
             for k in hd:
                 fout.write("{}: {!s}\n".format(k,hd[k]))
             fout.write("\n" + "-"*60 + "\n")
-        fout.write("{:>10s} {:>10s} {:>8s}\n".format("T (s)","V (float)", "V (int)"))
+        fout.write("{:>12s} {:>12s} {:>8s}\n".format("T (s)","V (float)", "V (int)"))
         for d in wave:
-            fout.write("{:+10.4g} {:+10.4g} {:8d}\n".format(d["T"], d["V_f"], d["V_i"]))
+            fout.write("{:12.4e} {:12.4e} {:8d}\n".format(d["T"], d["V_f"], d["V_i"]))
 
 
 def _dump_tds3000_isf_to_hdf5(fn, f5grp):
