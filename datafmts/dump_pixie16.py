@@ -19,7 +19,7 @@ class Pixie16McaDumper:
 
     def __init__(self): pass
 
-    def _read_spectrum(self, fin):
+    def _get_spectrum(self, fin):
         try:
             return unpack(self._sp_fmt, fin.read(self._sp_len))
         except:
@@ -32,7 +32,7 @@ class Pixie16McaDumper:
         with open(fn, "rb") as f:
             num_spc = 0
             while True:
-                spc = self._read_spectrum(f)
+                spc = self._get_spectrum(f)
                 if not spc:
                     break
                 if not trim_zero or any(j != 0 for j in spc):

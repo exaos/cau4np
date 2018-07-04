@@ -133,7 +133,7 @@ def reformat_pmca_spec(spec):
             'info_misc': info_misc}
 
 
-def read_pmca(fm):
+def dump_pmca(fm):
     """
     Purpose: Read data acquired by MCA8000A through software "pmca".
     Extention: .mca
@@ -154,5 +154,5 @@ if __name__ == '__main__':
         print(u"Usage: {} <file.mca>".format(sys.argv[0]))
         sys.exit(0)
 
-    spec = read_pmca(sys.argv[1])
+    spec = dump_pmca(sys.argv[1])
     pprint(spec, compact=True)

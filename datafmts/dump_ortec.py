@@ -157,7 +157,7 @@ def parse_ortec_chn(fin):
     }
 
 
-def read_ortec_chn(fn):
+def dump_ortec_chn(fn):
     """Read ORTEC integer data spectrum file (*.chn)."""
 
     with open(fn, u"rb") as fin:
@@ -343,14 +343,14 @@ def parse_ortec_lib_peak(ss):
 ############################################################
 
 
-def read_ortec_spc(fn):
+def dump_ortec_spc(fn):
     """Read ORTEC spectrum file (*.spc)."""
 
     with open(fn, "rb") as fin:
         return parse_ortec_spc(fin)
 
 
-def read_ortec_lib(fn):
+def dump_ortec_lib(fn):
     """Read ORTEC library file (.lib).
 
     Ref: File structure manual
@@ -360,7 +360,7 @@ def read_ortec_lib(fn):
     print(u"Not implemented!")
 
 
-def read_ortec_roi(fn):
+def dump_ortec_roi(fn):
     """Read ORTEC spectrum .roi files (*.roi).
 
     File format:
@@ -375,7 +375,7 @@ def read_ortec_roi(fn):
     print(u"Not implemented!")
 
 
-def read_ortec_prm(fn):
+def dump_ortec_prm(fn):
     """
     Read ORTEC analysis parameter files (*.prm).
     Ref: File structure manual, pp.9
@@ -384,7 +384,7 @@ def read_ortec_prm(fn):
     print(u"Not implemented!")
 
 
-def read_ortec_clb(fn):
+def dump_ortec_clb(fn):
     """Read ORTEC calibration files (*.clb).
     Ref: File structure manual, pp.17
     """
@@ -392,7 +392,7 @@ def read_ortec_clb(fn):
     print(u"Not implemented!")
 
 
-def read_ortec_det(fn):
+def dump_ortec_det(fn):
     """
     Read ORTEC detector description files (*.det).
     Ref: File structure manual, pp.23
@@ -401,7 +401,7 @@ def read_ortec_det(fn):
     print(u"Not implemented!")
 
 
-def read_ortec_smp(fn):
+def dump_ortec_smp(fn):
     """
     Read ORTEC sample description files (*.smp).
     Ref: File structure manual, pp.26
@@ -412,21 +412,21 @@ def read_ortec_smp(fn):
 
 ############################################################
 
-def read_ortec(fn):
+def dump_ortec(fn):
     """
     Read spectrum file by ORTEC
     (*.chn/.spc/.roi/.prm/.clb/.det/.smp/.lib).
     """
 
     return {
-        ".chn": read_ortec_chn,
-        ".spc": read_ortec_spc,
-        ".roi": read_ortec_roi,
-        ".prm": read_ortec_prm,
-        ".clb": read_ortec_clb,
-        ".det": read_ortec_det,
-        ".smp": read_ortec_smp,
-        ".lib": read_ortec_lib
+        ".chn": dump_ortec_chn,
+        ".spc": dump_ortec_spc,
+        ".roi": dump_ortec_roi,
+        ".prm": dump_ortec_prm,
+        ".clb": dump_ortec_clb,
+        ".det": dump_ortec_det,
+        ".smp": dump_ortec_smp,
+        ".lib": dump_ortec_lib
     }.get(fn[-4:].lower())(fn)
 
 
@@ -440,7 +440,7 @@ if __name__ == '__main__':
         print(u"Usage: {} <file.[chn|spc]>".format(sys.argv[0]))
         sys.exit(0)
 
-    spec = read_ortec(sys.argv[1])
+    spec = dump_ortec(sys.argv[1])
     for k in spec:
         print(k, ":")
         pprint(spec[k], compact=True)
